@@ -1,8 +1,8 @@
 from keras.models import Model
 from keras.layers.recurrent import LSTM
-from keras.layers import Dense, Input
-from keras.callbacks import ModelCheckpoint
+from keras.layers import Dense, Input, Embedding, Bidirectional, Concatenate
 from keras.preprocessing.sequence import pad_sequences
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from collections import Counter
 import nltk
 import numpy as np
@@ -186,14 +186,33 @@ def generate_batch(input_word2em_data, output_text_data):
 
 
 encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
-encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm')
-encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+
+if(sys.argv[1] == 'bidirectional'):
+    print('TRAINING ON BIDIRECTIONAL')
+
+    encoder_lstm = Bidirectional(LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm'))
+    encoder_outputs, encoder_state_forward_h, encoder_state_forward_c, encoder_state_backward_h, encoder_state_backward_c = encoder_lstm(encoder_inputs)
+
+    # IF BIDIRECTIONAL, NEEDS TO CONCATENATE FORWARD AND BACKWARD STATE
+    encoder_state_h = Concatenate()([encoder_state_forward_h, encoder_state_backward_h])
+    encoder_state_c = Concatenate()([encoder_state_forward_c, encoder_state_backward_c])
+else:
+    encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm')
+    encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+
 encoder_states = [encoder_state_h, encoder_state_c]
 
-decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
-decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
-decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
-                                                                 initial_state=encoder_states)
+if(sys.argv[1] == 'bidirectional'):
+    decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+    decoder_lstm = LSTM(units=HIDDEN_UNITS * 2, return_state=True, return_sequences=True, name='decoder_lstm')
+    decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+                                                                     initial_state=encoder_states)
+else:
+    decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+    decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
+    decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+                                                                     initial_state=encoder_states)
+                                                                     
 decoder_dense = Dense(units=num_decoder_tokens, activation='softmax', name='decoder_dense')
 decoder_outputs = decoder_dense(decoder_outputs)
 
@@ -215,10 +234,16 @@ test_gen = generate_batch(Xtest, Ytest)
 train_num_batches = len(Xtrain) // BATCH_SIZE
 test_num_batches = len(Xtest) // BATCH_SIZE
 
-checkpoint = ModelCheckpoint(filepath=WEIGHT_FILE_PATH, save_best_only=True)
+# checkpoint = ModelCheckpoint(filepath=WEIGHT_FILE_PATH, save_best_only=True)
+
+# CALLBACK TO STOP IF THERE IS NO IMPROVEMENTS AND TO SAVE CHECKPOINTS
+callbacks = [
+    EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=0, mode='auto'),
+    ModelCheckpoint(filepath=WEIGHT_FILE_PATH, save_best_only=True)
+]
 
 model.fit_generator(generator=train_gen, steps_per_epoch=train_num_batches,
                     epochs=NUM_EPOCHS,
-                    verbose=1, validation_data=test_gen, validation_steps=test_num_batches, callbacks=[checkpoint])
+                    verbose=1, validation_data=test_gen, validation_steps=test_num_batches, callbacks=callbacks)
 
 model.save_weights(WEIGHT_FILE_PATH)
