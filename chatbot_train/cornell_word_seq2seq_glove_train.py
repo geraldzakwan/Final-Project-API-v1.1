@@ -228,12 +228,12 @@ test_num_batches = len(Xtest) // BATCH_SIZE
 
 # CALLBACK TO STOP IF THERE IS NO IMPROVEMENTS AND TO SAVE CHECKPOINTS
 callbacks = [
-    EarlyStopping(monitor='val_loss', min_delta=0.001, patience=10, verbose=0, mode='auto'),
+    EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=0, mode='auto'),
     ModelCheckpoint(filepath=WEIGHT_FILE_PATH, save_best_only=True)
 ]
 
 model.fit_generator(generator=train_gen, steps_per_epoch=train_num_batches,
                     epochs=NUM_EPOCHS,
-                    verbose=1, validation_data=test_gen, validation_steps=test_num_batches, callbacks=[callbacks])
+                    verbose=1, validation_data=test_gen, validation_steps=test_num_batches, callbacks=callbacks)
 
 model.save_weights(WEIGHT_FILE_PATH)
