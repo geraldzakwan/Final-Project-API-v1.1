@@ -91,6 +91,14 @@ def message_text(event):
         TextSendMessage(text=res_text)
     )
 
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+@app.route('/about')
+def about():
+    return 'About Us'
+
 @app.route('/gunthercox_word_glove_reply', methods=['POST', 'GET'])
 def gunthercox_word_glove_reply():
     if request.method == 'POST':
@@ -168,6 +176,91 @@ def reply(sentence, level, dialogs):
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
+def get_inputs_and_references(dataset_folder_name, sample_amount):
+    path = "chatbot_train/data/" + dataset_folder_name + "/test.txt"
+
+    with open(path) as f:
+        lines = f.readlines()
+
+        i = 1
+        inputs = []
+        references = []
+
+        for line in lines:
+            if (i % 2 == 1):
+                inputs.append(line[0:len(line)-1])
+            else:
+                references.append(line)
+
+            if(i == sample_amount * 2):
+                break
+
+            i = i + 1
+
+        return {
+            'inputs' : inputs,
+            'references' : references
+        }
+
+def get_outputs_and_references(dataset_folder_name, sample_amount):
+    data = get_inputs_and_references(dataset_folder_name, sample_amount)
+
+    inputs = data['inputs']
+    references = data['references']
+    outputs = []
+
+    if(dataset_folder_name == 'cornell-dialogs'):
+        dataset = 'cornell'
+    else:
+        dataset = dataset_folder_name
+
+    data = []
+    for i in range(0, len(inputs)):
+        data.append({
+            'output' : reply(inputs[i], 'word-glove', dataset)['reply'],
+            'reference' : references[i]
+        })
+
+    return data
+
+# CALCULATE BLEU SCORE
+def bleu_score(dialogs, sample_amount):
+    from nltk.translate.bleu_score import sentence_bleu
+
+    if(dialogs == 'cornell'):
+        dataset_folder_name = 'cornell-dialogs'
+    else:
+        dataset_folder_name = dialogs
+
+    data = get_outputs_and_references(dataset_folder_name, sample_amount)
+    print('DATAAA')
+    print(data)
+
+    sum_bleu_score_1 = 0
+    sum_bleu_score_2 = 0
+    sum_bleu_score_3 = 0
+    sum_bleu_score_4 = 0
+
+    i = 0
+
+    for datum in data:
+        reference = []
+        reference.append(nltk.tokenize.word_tokenize(datum['reference']))
+        candidate = nltk.tokenize.word_tokenize(datum['output'])
+
+        sum_bleu_score_1 = sum_bleu_score_1 + sentence_bleu(reference, candidate, weights=(1, 0, 0, 0))
+        sum_bleu_score_2 = sum_bleu_score_2 + sentence_bleu(reference, candidate, weights=(0.5, 0.5, 0, 0))
+        sum_bleu_score_3 = sum_bleu_score_3 + sentence_bleu(reference, candidate, weights=(0.33, 0.33, 0.33, 0))
+        sum_bleu_score_4 = sum_bleu_score_4 + sentence_bleu(reference, candidate, weights=(0.25, 0.25, 0.25, 0.25))
+
+        i = i + 1
+        print(i)
+
+    print('BLEU-1 : ' + str(round(sum_bleu_score_1/len(data), 2)))
+    print('BLEU-2 : ' + str(round(sum_bleu_score_2/len(data), 2)))
+    print('BLEU-3 : ' + str(round(sum_bleu_score_3/len(data), 2)))
+    print('BLEU-4 : ' + str(round(sum_bleu_score_4/len(data), 2)))
+
 def main():
 
     app.secret_key = os.urandom(12)
@@ -184,3 +277,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # bleu_score('cornell', 100)
+    # bleu_score('gunthercox', 10)

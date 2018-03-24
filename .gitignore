@@ -14,6 +14,9 @@ Thumbs.db
 chatbot_train/uploads
 chatbot_train/very_large_data
 chatbot_train/models/cornell/old-word-glove
+chatbot_train/models/cornell/*.h5
+chatbot_train/models/gunthercox/*.h5
+chatbot_train/models/gunthercox/broken model
 
 # Configuration file
 .env

@@ -1,0 +1,20 @@
+Good morning, how are you?
+i am doing well, how about you?
+Hello
+hi
+How are you doing?
+i am doing well.
+What is the stock market
+buy low and sell high.
+What is economics
+the science that deals with the production , distribution , and consumption of wealth ,
+Are you a programmer?
+of course I am a programmer.
+What is AI?
+Artificial Intelligence is the branch of engineering and science devoted to constructing machines that think.
+What languages do you like to use?
+i use Python, Java and C++ quite often.
+What language are you written in?
+python.
+do you drink
+my brain does not require any beverages.
