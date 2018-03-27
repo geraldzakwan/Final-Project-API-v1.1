@@ -31,8 +31,9 @@ app.config.from_object(__name__)  # load config from this file , flaskr.py
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-gunthercox_word_glove_chat_bot = GunthercoxWordGloveChatBot()
-cornell_word_glove_chat_bot = CornellWordGloveChatBot()
+type = sys.argv[1]
+# gunthercox_word_glove_chat_bot = GunthercoxWordGloveChatBot(type)
+cornell_word_glove_chat_bot = CornellWordGloveChatBot(type)
 
 cornell_word_glove_chat_bot_conversations = []
 gunthercox_word_glove_chat_bot_conversations = []
@@ -233,8 +234,8 @@ def bleu_score(dialogs, sample_amount):
         dataset_folder_name = dialogs
 
     data = get_outputs_and_references(dataset_folder_name, sample_amount)
-    print('DATAAA')
-    print(data)
+    # print('DATAAA')
+    # print(data)
 
     sum_bleu_score_1 = 0
     sum_bleu_score_2 = 0
@@ -276,6 +277,6 @@ def main():
     app.run(host='0.0.0.0', port=port, debug=False)
 
 if __name__ == '__main__':
-    main()
-    # bleu_score('cornell', 100)
+    # main()
+    bleu_score('cornell', 100)
     # bleu_score('gunthercox', 10)

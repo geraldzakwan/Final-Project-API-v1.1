@@ -1,5 +1,7 @@
 from keras.models import Model, model_from_json
-from keras.layers import Input, LSTM, Dense, Embedding
+# from keras.layers import Input, LSTM, Dense, Embedding
+from keras.layers.recurrent import LSTM
+from keras.layers import Dense, Input, Embedding, Bidirectional, Concatenate
 from keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import nltk
@@ -79,7 +81,8 @@ class GunthercoxWordGloveChatBot(object):
     num_decoder_tokens = None
     word2em = None
 
-    def __init__(self):
+    def __init__(self, type):
+        self.type = type
         self.word2em = load_glove()
         # print(len(self.word2em))
         # print(self.word2em['start'])
@@ -94,13 +97,33 @@ class GunthercoxWordGloveChatBot(object):
         self.num_decoder_tokens = context['num_decoder_tokens']
 
         encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
-        encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name="encoder_lstm")
-        encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+
+        if(sys.argv[1] == 'bidirectional'):
+            print('PREDICTING ON BIDIRECTIONAL')
+
+            encoder_lstm = Bidirectional(LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm'))
+            encoder_outputs, encoder_state_forward_h, encoder_state_forward_c, encoder_state_backward_h, encoder_state_backward_c = encoder_lstm(encoder_inputs)
+
+            # IF BIDIRECTIONAL, NEEDS TO CONCATENATE FORWARD AND BACKWARD STATE
+            encoder_state_h = Concatenate()([encoder_state_forward_h, encoder_state_backward_h])
+            encoder_state_c = Concatenate()([encoder_state_forward_c, encoder_state_backward_c])
+        else:
+            encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm')
+            encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+
         encoder_states = [encoder_state_h, encoder_state_c]
 
-        decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
-        decoder_lstm = LSTM(units=HIDDEN_UNITS, return_sequences=True, return_state=True, name='decoder_lstm')
-        decoder_outputs, _, _ = decoder_lstm(decoder_inputs, initial_state=encoder_states)
+        if(sys.argv[1] == 'bidirectional'):
+            decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+            decoder_lstm = LSTM(units=HIDDEN_UNITS * 2, return_state=True, return_sequences=True, name='decoder_lstm')
+            decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+                                                                             initial_state=encoder_states)
+        else:
+            decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+            decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
+            decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+                                                                             initial_state=encoder_states)
+
         decoder_dense = Dense(self.num_decoder_tokens, activation='softmax', name='decoder_dense')
         decoder_outputs = decoder_dense(decoder_outputs)
 
