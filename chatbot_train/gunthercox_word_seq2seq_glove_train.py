@@ -29,7 +29,7 @@ WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
 
 # WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + '/word-glove-weights.h5'
 MODEL_NAME = sys.argv[2]
-WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + MODEL_NAME + '.h5'
+WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + '/' + MODEL_NAME + '.h5'
 
 
 def in_white_list(_word):
