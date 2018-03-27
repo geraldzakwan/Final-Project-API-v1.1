@@ -15,7 +15,7 @@ import zipfile
 np.random.seed(42)
 
 BATCH_SIZE = 64
-NUM_EPOCHS = 1000
+NUM_EPOCHS = int(sys.argv[3])
 GLOVE_EMBEDDING_SIZE = 100
 HIDDEN_UNITS = 256
 MAX_INPUT_SEQ_LENGTH = 30
@@ -23,10 +23,13 @@ MAX_TARGET_SEQ_LENGTH = 30
 MAX_VOCAB_SIZE = 10000
 DATA_SET_NAME = 'gunthercox'
 DATA_DIR_PATH = 'data/gunthercox'
-WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + '/word-glove-weights.h5'
 
 GLOVE_MODEL = "very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
 WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
+
+# WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + '/word-glove-weights.h5'
+MODEL_NAME = sys.argv[2]
+WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + MODEL_NAME + '.h5'
 
 
 def in_white_list(_word):
@@ -212,7 +215,7 @@ else:
     decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
     decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                      initial_state=encoder_states)
-                                                                     
+
 decoder_dense = Dense(units=num_decoder_tokens, activation='softmax', name='decoder_dense')
 decoder_outputs = decoder_dense(decoder_outputs)
 

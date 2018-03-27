@@ -15,7 +15,7 @@ import zipfile
 np.random.seed(42)
 
 BATCH_SIZE = 64
-NUM_EPOCHS = 1000
+NUM_EPOCHS = int(sys.argv[3])
 GLOVE_EMBEDDING_SIZE = 100
 HIDDEN_UNITS = 256
 MAX_INPUT_SEQ_LENGTH = 40
@@ -26,7 +26,10 @@ DATA_PATH = 'data/cornell-dialogs/movie_lines_cleaned_10k.txt'
 
 GLOVE_MODEL = "very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
 WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
-WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + '/word-glove-weights.h5'
+
+# WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + '/word-glove-weights.h5'
+MODEL_NAME = sys.argv[2]
+WEIGHT_FILE_PATH = 'models/' + DATA_SET_NAME + MODEL_NAME + '.h5'
 
 
 def in_white_list(_word):
