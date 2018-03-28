@@ -21,6 +21,7 @@ chatbot_train/models/gunthercox/*.h5
 chatbot_train/models/gunthercox/*.json
 chatbot_train/models/gunthercox/*.npy
 chatbot_train/models/gunthercox/broken model
+chatbot_train/models/cornell/broken model
 chatbot_train/models/unknown_model
 
 # Configuration file
