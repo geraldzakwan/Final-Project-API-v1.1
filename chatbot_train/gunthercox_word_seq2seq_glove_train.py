@@ -12,15 +12,18 @@ import os
 import sys
 import zipfile
 
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv(), override=True)
+
 np.random.seed(42)
 
-BATCH_SIZE = 64
+BATCH_SIZE = os.environ['BATCH_SIZE']
 NUM_EPOCHS = int(sys.argv[3])
-GLOVE_EMBEDDING_SIZE = 100
-HIDDEN_UNITS = 256
-MAX_INPUT_SEQ_LENGTH = 30
-MAX_TARGET_SEQ_LENGTH = 30
-MAX_VOCAB_SIZE = 10000
+GLOVE_EMBEDDING_SIZE = os.environ['GLOVE_EMBEDDING_SIZE']
+HIDDEN_UNITS = os.environ['HIDDEN_UNITS']
+MAX_INPUT_SEQ_LENGTH = os.environ['MAX_INPUT_SEQ_LENGTH']
+MAX_TARGET_SEQ_LENGTH = os.environ['MAX_TARGET_SEQ_LENGTH']
+MAX_VOCAB_SIZE = os.environ['MAX_VOCAB_SIZE']
 DATA_SET_NAME = 'gunthercox'
 DATA_DIR_PATH = 'data/gunthercox'
 
