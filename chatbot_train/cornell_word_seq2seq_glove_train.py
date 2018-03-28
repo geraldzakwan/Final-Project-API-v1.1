@@ -17,13 +17,13 @@ load_dotenv(find_dotenv(), override=True)
 
 np.random.seed(42)
 
-BATCH_SIZE = os.environ['BATCH_SIZE']
+BATCH_SIZE = int(os.environ['BATCH_SIZE'])
 NUM_EPOCHS = int(sys.argv[3])
-GLOVE_EMBEDDING_SIZE = os.environ['GLOVE_EMBEDDING_SIZE']
-HIDDEN_UNITS = os.environ['HIDDEN_UNITS']
-MAX_INPUT_SEQ_LENGTH = os.environ['MAX_INPUT_SEQ_LENGTH']
-MAX_TARGET_SEQ_LENGTH = os.environ['MAX_TARGET_SEQ_LENGTH']
-MAX_VOCAB_SIZE = os.environ['MAX_VOCAB_SIZE']
+GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
+HIDDEN_UNITS = int(os.environ['HIDDEN_UNITS'])
+MAX_INPUT_SEQ_LENGTH = int(os.environ['MAX_INPUT_SEQ_LENGTH'])
+MAX_TARGET_SEQ_LENGTH = int(os.environ['MAX_TARGET_SEQ_LENGTH'])
+MAX_VOCAB_SIZE = int(os.environ['MAX_VOCAB_SIZE'])
 DATA_SET_NAME = 'cornell'
 DATA_PATH = 'data/cornell-dialogs/movie_lines_cleaned_10k.txt'
 
