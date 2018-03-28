@@ -244,7 +244,7 @@ test_num_batches = len(Xtest) // BATCH_SIZE
 
 # CALLBACK TO STOP IF THERE IS NO IMPROVEMENTS AND TO SAVE CHECKPOINTS
 callbacks = [
-    EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=0, mode='auto'),
+    EarlyStopping(monitor='val_loss', min_delta=0, patience=int(os.environ['PATIENCE']), verbose=0, mode='auto'),
     ModelCheckpoint(filepath=WEIGHT_FILE_PATH, save_best_only=True)
 ]
 
