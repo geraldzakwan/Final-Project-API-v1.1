@@ -3,6 +3,7 @@ from keras.layers.recurrent import LSTM
 from keras.layers import Dense, Input, Embedding, Bidirectional, Concatenate
 from keras.preprocessing.sequence import pad_sequences
 from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.layers.core import Flatten
 from collections import Counter
 import nltk
 import numpy as np
@@ -11,6 +12,8 @@ import urllib.request
 import os
 import sys
 import zipfile
+
+import attention_lstm
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv(), override=True)
@@ -180,8 +183,12 @@ def generate_batch(input_word2em_data, output_text_data):
                         decoder_target_data_batch[lineIdx, idx - 1, w2idx] = 1
             yield [encoder_input_data_batch, decoder_input_data_batch], decoder_target_data_batch
 
-
-encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
+if('attention' in sys.argv[1]):
+    # THIS IS STILL RANDOM IDEA
+    # encoder_inputs = Input(shape=(None, MAX_INPUT_SEQ_LENGTH, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
+    encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
+else:
+    encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
 
 if(sys.argv[1] == 'bidirectional'):
     print('TRAINING ON BIDIRECTIONAL')
@@ -194,7 +201,13 @@ if(sys.argv[1] == 'bidirectional'):
     encoder_state_c = Concatenate()([encoder_state_forward_c, encoder_state_backward_c])
 else:
     encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm')
-    encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+
+    if('attention' in sys.argv[1]):
+        # THIS IS STILL RANDOM IDEA TO IGNORE THE 2ND DIMENSION
+        # encoder_outputs, _, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+        encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+    else:
+        encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
 
 encoder_states = [encoder_state_h, encoder_state_c]
 
@@ -204,13 +217,44 @@ if(sys.argv[1] == 'bidirectional'):
     decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                      initial_state=encoder_states)
 else:
-    decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+    if('attention' in sys.argv[1]):
+        # HERE, THE GLOVE EMBEDDING SIZE ACTS AS THE INPUT DIMENSION
+        # IF USING ATTENTION, WE NEED TO SET SHAPE WITH TIME STEPS, NOT WITH NONE
+        # THIS INPUT WILL BE USED WHEN BUILDING ENCODER OUTPUTS
+
+        # decoder_inputs = Input(shape=(None, attention_lstm.TIME_STEPS, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+        # decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+        decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+
+        if(sys.argv[1] == 'attention_before'):
+            attention_mul = attention_lstm.attention_3d_block(decoder_inputs)
+    else:
+        decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+
+    # PAY ATTENTION THAT DECODER AND ENCODER STATE MUST ALWAYS HAVE THE SAME DIMENSION
+    # IN THIS CASE, WE USE 2D
     decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
-    decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+
+    if('attention' in sys.argv[1]):
+        # REMOVE ENCODER AS INITIAL STATE FOR ATTENTION
+        # decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs)
+        decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+                                                                     initial_state=encoder_states)
+    else:
+        decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                      initial_state=encoder_states)
 
+if(sys.argv[1] == 'attention_after'):
+    attention_mul = attention_lstm.attention_3d_block(decoder_outputs)
+    # SOMEHOW THIS FLATTEN FUNCTION CAUSE THE PROBLEM
+    # attention_mul = Flatten()(attention_mul)
+
 decoder_dense = Dense(units=num_decoder_tokens, activation='softmax', name='decoder_dense')
-decoder_outputs = decoder_dense(decoder_outputs)
+
+if(sys.argv[1] == 'attention_after' or sys.argv[1] == 'attention_before'):
+    decoder_outputs = decoder_dense(attention_mul)
+else:
+    decoder_outputs = decoder_dense(decoder_outputs)
 
 model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 

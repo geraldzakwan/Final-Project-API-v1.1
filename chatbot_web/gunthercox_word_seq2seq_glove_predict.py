@@ -10,11 +10,19 @@ import sys
 import zipfile
 import urllib.request
 
-HIDDEN_UNITS = 256
-WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
-GLOVE_EMBEDDING_SIZE = 100
-GLOVE_MODEL = "chatbot_train/very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
+import attention_lstm
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv(), override=True)
+
+GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
+HIDDEN_UNITS = int(os.environ['HIDDEN_UNITS'])
+MAX_INPUT_SEQ_LENGTH = int(os.environ['MAX_INPUT_SEQ_LENGTH'])
+MAX_TARGET_SEQ_LENGTH = int(os.environ['MAX_TARGET_SEQ_LENGTH'])
 DATA_SET_NAME = 'gunthercox'
+
+GLOVE_MODEL = "chatbot_train/very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
+WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
 
 
 def in_white_list(_word):

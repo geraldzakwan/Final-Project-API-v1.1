@@ -10,11 +10,19 @@ import sys
 import zipfile
 import urllib.request
 
-HIDDEN_UNITS = 256
-WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
-GLOVE_EMBEDDING_SIZE = 100
-GLOVE_MODEL = "chatbot_train/very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
+import attention_lstm
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv(), override=True)
+
+GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
+HIDDEN_UNITS = int(os.environ['HIDDEN_UNITS'])
+MAX_INPUT_SEQ_LENGTH = int(os.environ['MAX_INPUT_SEQ_LENGTH'])
+MAX_TARGET_SEQ_LENGTH = int(os.environ['MAX_TARGET_SEQ_LENGTH'])
 DATA_SET_NAME = 'cornell'
+
+GLOVE_MODEL = "chatbot_train/very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
+WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
 
 
 def in_white_list(_word):
@@ -96,10 +104,15 @@ class CornellWordGloveChatBot(object):
         self.max_decoder_seq_length = context['decoder_max_seq_length']
         self.num_decoder_tokens = context['num_decoder_tokens']
 
-        encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
+        if('attention' in sys.argv[1]):
+            # THIS IS STILL RANDOM IDEA
+            # encoder_inputs = Input(shape=(None, MAX_INPUT_SEQ_LENGTH, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
+            encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
+        else:
+            encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
 
         if(sys.argv[1] == 'bidirectional'):
-            print('PREDICTING ON BIDIRECTIONAL')
+            print('TRAINING ON BIDIRECTIONAL')
 
             encoder_lstm = Bidirectional(LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm'))
             encoder_outputs, encoder_state_forward_h, encoder_state_forward_c, encoder_state_backward_h, encoder_state_backward_c = encoder_lstm(encoder_inputs)
@@ -109,7 +122,13 @@ class CornellWordGloveChatBot(object):
             encoder_state_c = Concatenate()([encoder_state_forward_c, encoder_state_backward_c])
         else:
             encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm')
-            encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+
+            if('attention' in sys.argv[1]):
+                # THIS IS STILL RANDOM IDEA TO IGNORE THE 2ND DIMENSION
+                # encoder_outputs, _, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+                encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
+            else:
+                encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
 
         encoder_states = [encoder_state_h, encoder_state_c]
 
@@ -119,13 +138,44 @@ class CornellWordGloveChatBot(object):
             decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                              initial_state=encoder_states)
         else:
-            decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+            if('attention' in sys.argv[1]):
+                # HERE, THE GLOVE EMBEDDING SIZE ACTS AS THE INPUT DIMENSION
+                # IF USING ATTENTION, WE NEED TO SET SHAPE WITH TIME STEPS, NOT WITH NONE
+                # THIS INPUT WILL BE USED WHEN BUILDING ENCODER OUTPUTS
+
+                # decoder_inputs = Input(shape=(None, attention_lstm.TIME_STEPS, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+                # decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+                decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+
+                if(sys.argv[1] == 'attention_before'):
+                    attention_mul = attention_lstm.attention_3d_block(decoder_inputs)
+            else:
+                decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+
+            # PAY ATTENTION THAT DECODER AND ENCODER STATE MUST ALWAYS HAVE THE SAME DIMENSION
+            # IN THIS CASE, WE USE 2D
             decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
-            decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+
+            if('attention' in sys.argv[1]):
+                # REMOVE ENCODER AS INITIAL STATE FOR ATTENTION
+                # decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs)
+                decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
+                                                                             initial_state=encoder_states)
+            else:
+                decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                              initial_state=encoder_states)
 
-        decoder_dense = Dense(self.num_decoder_tokens, activation='softmax', name='decoder_dense')
-        decoder_outputs = decoder_dense(decoder_outputs)
+        if(sys.argv[1] == 'attention_after'):
+            attention_mul = attention_lstm.attention_3d_block(decoder_outputs)
+            # SOMEHOW THIS FLATTEN FUNCTION CAUSE THE PROBLEM
+            # attention_mul = Flatten()(attention_mul)
+
+        decoder_dense = Dense(units=self.num_decoder_tokens, activation='softmax', name='decoder_dense')
+
+        if(sys.argv[1] == 'attention_after' or sys.argv[1] == 'attention_before'):
+            decoder_outputs = decoder_dense(attention_mul)
+        else:
+            decoder_outputs = decoder_dense(decoder_outputs)
 
         self.model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 
