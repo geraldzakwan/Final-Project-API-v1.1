@@ -19,7 +19,8 @@ load_dotenv(find_dotenv(), override=True)
 
 np.random.seed(42)
 
-BATCH_SIZE = int(os.environ['BATCH_SIZE'])
+# BATCH_SIZE = int(os.environ['BATCH_SIZE'])
+BATCH_SIZE = 64
 NUM_EPOCHS = int(sys.argv[3])
 GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
 HIDDEN_UNITS = int(os.environ['HIDDEN_UNITS'])
@@ -234,10 +235,11 @@ else:
 
         # decoder_inputs = Input(shape=(None, attention_lstm.TIME_STEPS, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
         # decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
-        decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+        # decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+        decoder_inputs = Input(shape=(decoder_max_seq_length, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
 
         if(sys.argv[1] == 'attention_before'):
-            attention_mul = attention_lstm.attention_3d_block(decoder_inputs)
+            attention_mul = attention_lstm.attention_3d_block(decoder_inputs, decoder_max_seq_length)
     else:
         decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
 
@@ -255,7 +257,7 @@ else:
                                                                      initial_state=encoder_states)
 
 if(sys.argv[1] == 'attention_after'):
-    attention_mul = attention_lstm.attention_3d_block(decoder_outputs)
+    attention_mul = attention_lstm.attention_3d_block(decoder_outputs, decoder_max_seq_length)
     # SOMEHOW THIS FLATTEN FUNCTION CAUSE THE PROBLEM
     # attention_mul = Flatten()(attention_mul)
 

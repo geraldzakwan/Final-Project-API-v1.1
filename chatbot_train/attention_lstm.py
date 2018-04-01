@@ -13,7 +13,7 @@ INPUT_DIM = 2
 # TIME_STEPS MUST EQUAL TO DECODER MAX LENGTH
 # IF NOT, THERE WILL BE ERROR IN DECODER INPUT
 # TIME_STEPS = 20
-TIME_STEPS = int(os.environ['MAX_TARGET_SEQ_LENGTH']) + 2 # FOR START AND END TOKEN
+# TIME_STEPS = int(os.environ['MAX_TARGET_SEQ_LENGTH']) + 2 # FOR START AND END TOKEN
 
 # if True, the attention vector is shared across the input_dimensions where the attention is applied.
 SINGLE_ATTENTION_VECTOR = False
@@ -37,6 +37,22 @@ def attention_3d_block(inputs):
     output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
     return output_attention_mul
 
+def attention_3d_block(inputs, time_steps):
+    # inputs.shape = (batch_size, time_steps, input_dim)
+    input_dim = int(inputs.shape[2])
+    a = Permute((2, 1))(inputs)
+    a = Reshape((input_dim, time_steps))(a) # this line is not useful. It's just to know which dimension is what.
+
+    # CAREFUL WHEN CHANGE THESE LINES
+    a = Dense(time_steps, activation='softmax')(a)
+    # a = Dense(None, activation='softmax')(a)
+
+    if SINGLE_ATTENTION_VECTOR:
+        a = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
+        a = RepeatVector(input_dim)(a)
+    a_probs = Permute((2, 1), name='attention_vec')(a)
+    output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
+    return output_attention_mul
 
 def model_attention_applied_after_lstm():
     inputs = Input(shape=(TIME_STEPS, INPUT_DIM,))

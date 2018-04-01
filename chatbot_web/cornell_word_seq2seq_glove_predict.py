@@ -145,10 +145,11 @@ class CornellWordGloveChatBot(object):
 
                 # decoder_inputs = Input(shape=(None, attention_lstm.TIME_STEPS, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
                 # decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
-                decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+                # decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
+                decoder_inputs = Input(shape=(self.max_decoder_seq_length, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
 
                 if(sys.argv[1] == 'attention_before'):
-                    attention_mul = attention_lstm.attention_3d_block(decoder_inputs)
+                    attention_mul = attention_lstm.attention_3d_block(decoder_inputs, self.max_decoder_seq_length)
             else:
                 decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
 
@@ -166,7 +167,7 @@ class CornellWordGloveChatBot(object):
                                                                              initial_state=encoder_states)
 
         if(sys.argv[1] == 'attention_after'):
-            attention_mul = attention_lstm.attention_3d_block(decoder_outputs)
+            attention_mul = attention_lstm.attention_3d_block(decoder_outputs, self.max_decoder_seq_length)
             # SOMEHOW THIS FLATTEN FUNCTION CAUSE THE PROBLEM
             # attention_mul = Flatten()(attention_mul)
 
