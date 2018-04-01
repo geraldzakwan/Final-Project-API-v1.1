@@ -104,15 +104,15 @@ class CornellWordGloveChatBot(object):
         self.max_decoder_seq_length = context['decoder_max_seq_length']
         self.num_decoder_tokens = context['num_decoder_tokens']
 
-        if('attention' in sys.argv[1]):
+        if('attention' in self.type):
             # THIS IS STILL RANDOM IDEA
             # encoder_inputs = Input(shape=(None, MAX_INPUT_SEQ_LENGTH, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
             encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
         else:
             encoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='encoder_inputs')
 
-        if(sys.argv[1] == 'bidirectional'):
-            print('TRAINING ON BIDIRECTIONAL')
+        if(self.type == 'bidirectional'):
+            print('PREDICTING ON BIDIRECTIONAL')
 
             encoder_lstm = Bidirectional(LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm'))
             encoder_outputs, encoder_state_forward_h, encoder_state_forward_c, encoder_state_backward_h, encoder_state_backward_c = encoder_lstm(encoder_inputs)
@@ -123,7 +123,7 @@ class CornellWordGloveChatBot(object):
         else:
             encoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, name='encoder_lstm')
 
-            if('attention' in sys.argv[1]):
+            if('attention' in self.type):
                 # THIS IS STILL RANDOM IDEA TO IGNORE THE 2ND DIMENSION
                 # encoder_outputs, _, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
                 encoder_outputs, encoder_state_h, encoder_state_c = encoder_lstm(encoder_inputs)
@@ -132,13 +132,13 @@ class CornellWordGloveChatBot(object):
 
         encoder_states = [encoder_state_h, encoder_state_c]
 
-        if(sys.argv[1] == 'bidirectional'):
+        if(self.type == 'bidirectional'):
             decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
             decoder_lstm = LSTM(units=HIDDEN_UNITS * 2, return_state=True, return_sequences=True, name='decoder_lstm')
             decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                              initial_state=encoder_states)
         else:
-            if('attention' in sys.argv[1]):
+            if('attention' in self.type):
                 # HERE, THE GLOVE EMBEDDING SIZE ACTS AS THE INPUT DIMENSION
                 # IF USING ATTENTION, WE NEED TO SET SHAPE WITH TIME STEPS, NOT WITH NONE
                 # THIS INPUT WILL BE USED WHEN BUILDING ENCODER OUTPUTS
@@ -148,7 +148,7 @@ class CornellWordGloveChatBot(object):
                 # decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
                 decoder_inputs = Input(shape=(self.max_decoder_seq_length, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
 
-                if(sys.argv[1] == 'attention_before'):
+                if(self.type == 'attention_before'):
                     attention_mul = attention_lstm.attention_3d_block(decoder_inputs, self.max_decoder_seq_length)
             else:
                 decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
@@ -157,7 +157,7 @@ class CornellWordGloveChatBot(object):
             # IN THIS CASE, WE USE 2D
             decoder_lstm = LSTM(units=HIDDEN_UNITS, return_state=True, return_sequences=True, name='decoder_lstm')
 
-            if('attention' in sys.argv[1]):
+            if('attention' in self.type):
                 # REMOVE ENCODER AS INITIAL STATE FOR ATTENTION
                 # decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs)
                 decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
@@ -166,14 +166,14 @@ class CornellWordGloveChatBot(object):
                 decoder_outputs, decoder_state_h, decoder_state_c = decoder_lstm(decoder_inputs,
                                                                              initial_state=encoder_states)
 
-        if(sys.argv[1] == 'attention_after'):
+        if(self.type == 'attention_after'):
             attention_mul = attention_lstm.attention_3d_block(decoder_outputs, self.max_decoder_seq_length)
             # SOMEHOW THIS FLATTEN FUNCTION CAUSE THE PROBLEM
             # attention_mul = Flatten()(attention_mul)
 
         decoder_dense = Dense(units=self.num_decoder_tokens, activation='softmax', name='decoder_dense')
 
-        if(sys.argv[1] == 'attention_after' or sys.argv[1] == 'attention_before'):
+        if(self.type == 'attention_after' or self.type == 'attention_before'):
             decoder_outputs = decoder_dense(attention_mul)
         else:
             decoder_outputs = decoder_dense(decoder_outputs)
@@ -191,7 +191,7 @@ class CornellWordGloveChatBot(object):
 
         self.encoder_model = Model(encoder_inputs, encoder_states)
 
-        if(sys.argv[1] == 'bidirectional'):
+        if(self.type == 'bidirectional'):
             decoder_state_inputs = [Input(shape=(HIDDEN_UNITS*2,)), Input(shape=(HIDDEN_UNITS*2,))]
         else:
             decoder_state_inputs = [Input(shape=(HIDDEN_UNITS,)), Input(shape=(HIDDEN_UNITS,))]

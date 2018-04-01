@@ -24,8 +24,8 @@ BATCH_SIZE = 64
 NUM_EPOCHS = int(sys.argv[3])
 GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
 HIDDEN_UNITS = int(os.environ['HIDDEN_UNITS'])
-MAX_INPUT_SEQ_LENGTH = int(os.environ['MAX_INPUT_SEQ_LENGTH'])
-MAX_TARGET_SEQ_LENGTH = int(os.environ['MAX_TARGET_SEQ_LENGTH'])
+MAX_INPUT_SEQ_LENGTH = int(os.environ['SMALL_MAX_INPUT_SEQ_LENGTH'])
+MAX_TARGET_SEQ_LENGTH = int(os.environ['SMALL_MAX_TARGET_SEQ_LENGTH'])
 MAX_VOCAB_SIZE = int(os.environ['MAX_VOCAB_SIZE'])
 DATA_SET_NAME = 'gunthercox'
 DATA_DIR_PATH = 'data/gunthercox'
@@ -235,7 +235,6 @@ else:
 
         # decoder_inputs = Input(shape=(None, attention_lstm.TIME_STEPS, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
         # decoder_inputs = Input(shape=(None, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
-        # decoder_inputs = Input(shape=(MAX_TARGET_SEQ_LENGTH + 2, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
         decoder_inputs = Input(shape=(decoder_max_seq_length, GLOVE_EMBEDDING_SIZE), name='decoder_inputs')
 
         if(sys.argv[1] == 'attention_before'):
