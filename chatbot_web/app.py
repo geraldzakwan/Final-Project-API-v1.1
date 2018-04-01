@@ -32,8 +32,12 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 type = sys.argv[1]
-gunthercox_word_glove_chat_bot = GunthercoxWordGloveChatBot(type)
-# cornell_word_glove_chat_bot = CornellWordGloveChatBot(type)
+dataset = sys.argv[2]
+
+if(dataset == 'cornell'):
+	cornell_word_glove_chat_bot = CornellWordGloveChatBot(type)
+elif(dataset == 'gunthercox'):
+	gunthercox_word_glove_chat_bot = GunthercoxWordGloveChatBot(type)
 
 cornell_word_glove_chat_bot_conversations = []
 gunthercox_word_glove_chat_bot_conversations = []
@@ -277,8 +281,7 @@ def main():
     app.run(host='0.0.0.0', port=port, debug=False)
 
 if __name__ == '__main__':
-    # main()
-    if(sys.argv[2] == 'cornell'):
+    if(dataset == 'cornell'):
         bleu_score('cornell', 100)
     else:
         bleu_score('gunthercox', 10)
