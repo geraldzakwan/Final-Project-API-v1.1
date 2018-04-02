@@ -22,6 +22,7 @@ np.random.seed(42)
 
 BATCH_SIZE = int(os.environ['SMALL_BATCH_SIZE'])
 NUM_EPOCHS = int(sys.argv[3])
+PATIENCE = (int(os.environ['PATIENCE']) / 100) * NUM_EPOCHS
 GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
 HIDDEN_UNITS = int(os.environ['HIDDEN_UNITS'])
 MAX_INPUT_SEQ_LENGTH = int(os.environ['MAX_INPUT_SEQ_LENGTH'])
@@ -278,7 +279,7 @@ test_num_batches = len(Xtest) // BATCH_SIZE
 
 # CALLBACK TO STOP IF THERE IS NO IMPROVEMENTS AND TO SAVE CHECKPOINTS
 callbacks = [
-    EarlyStopping(monitor='val_loss', min_delta=0, patience=int(os.environ['PATIENCE']), verbose=0, mode='auto'),
+    EarlyStopping(monitor='val_loss', min_delta=0, patience=PATIENCE, verbose=0, mode='auto'),
     ModelCheckpoint(filepath=WEIGHT_FILE_PATH, save_best_only=True)
 ]
 
