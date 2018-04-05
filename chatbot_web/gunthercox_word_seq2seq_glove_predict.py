@@ -186,7 +186,7 @@ class GunthercoxWordGloveChatBot(object):
         # CHANGE THE MODEL FILE TO ENV SO IT CAN BE CONFIGURABLE WHICH
         # MODEL (ITERATION) WILL BE USED TO REPLY
         # self.model.load_weights('chatbot_train/models/' + DATA_SET_NAME + '/word-glove-weights.h5')
-        self.model.load_weights('chatbot_train/models/' + DATA_SET_NAME + '/' + os.environ['CURRENT_CORNELL_MODEL'])
+        self.model.load_weights('chatbot_train/models/' + DATA_SET_NAME + '/' + os.environ['CURRENT_GUNTHERCOX_MODEL'])
         self.model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 
         self.encoder_model = Model(encoder_inputs, encoder_states)
