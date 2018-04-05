@@ -1,0 +1,92 @@
+-- CORNELL
+
+  -- BIDIRECTIONAL
+
+    --  bidirectional/100-bidirectional-unknown-iteration.h5
+
+        BLEU-1 : 0.11
+        BLEU-2 : 0.21
+        BLEU-3 : 0.27
+        BLEU-4 : 0.31
+
+    --  bidirectional/500-bidirectional-unknown-iteration.h5
+
+        BLEU-1 : 0.05
+        BLEU-2 : 0.11
+        BLEU-3 : 0.14
+        BLEU-4 : 0.16
+
+    --  bidirectional/1000-bidirectional-unknown-iteration.h5
+
+        BLEU-1 : 0.05
+        BLEU-2 : 0.1
+        BLEU-3 : 0.14
+        BLEU-4 : 0.15
+
+    --  bidirectional/100-bidirectional-unknown-iteration-2.h5
+
+        BLEU-1 : 0.08
+        BLEU-2 : 0.19
+        BLEU-3 : 0.26
+        BLEU-4 : 0.31
+
+    --  bidirectional/500-bidirectional-unknown-iteration-2.h5
+
+        BLEU-1 : 0.05
+        BLEU-2 : 0.11
+        BLEU-3 : 0.14
+        BLEU-4 : 0.16
+
+    --  bidirectional/1000-bidirectional-unknown-iteration-2.h5
+
+        BLEU-1 : 0.05
+        BLEU-2 : 0.1
+        BLEU-3 : 0.12
+        BLEU-4 : 0.14
+
+-- GUNTHERCOX
+
+  -- BIDIRECTIONAL
+
+    --  bidirectional/1000-bidirectional-unknown-iteration.h5
+
+        BLEU-1 : 0.18
+        BLEU-2 : 0.23
+        BLEU-3 : 0.33
+        BLEU-4 : 0.39
+
+
+    --  bidirectional/5000-bidirectional-unknown-iteration.h5
+
+        BLEU-1 : 0.18
+        BLEU-2 : 0.22
+        BLEU-3 : 0.27
+        BLEU-4 : 0.32
+
+    --  bidirectional/10000-bidirectional-unknown-iteration.h5
+
+        BLEU-1 : 0.17
+        BLEU-2 : 0.22
+        BLEU-3 : 0.28
+        BLEU-4 : 0.32
+
+    --  bidirectional/1000-bidirectional-unknown-iteration-2.h5
+
+        BLEU-1 : 0.2
+        BLEU-2 : 0.25
+        BLEU-3 : 0.34
+        BLEU-4 : 0.4
+
+    --  bidirectional/5000-bidirectional-unknown-iteration-2.h5
+
+        BLEU-1 : 0.19
+        BLEU-2 : 0.31
+        BLEU-3 : 0.42
+        BLEU-4 : 0.48
+
+    --  bidirectional/10000-bidirectional-unknown-iteration-2.h5
+
+        BLEU-1 : 0.19
+        BLEU-2 : 0.31
+        BLEU-3 : 0.42
+        BLEU-4 : 0.48
