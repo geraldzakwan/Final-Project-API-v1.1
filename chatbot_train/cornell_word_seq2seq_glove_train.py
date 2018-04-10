@@ -29,7 +29,7 @@ MAX_INPUT_SEQ_LENGTH = int(os.environ['MAX_INPUT_SEQ_LENGTH'])
 MAX_TARGET_SEQ_LENGTH = int(os.environ['MAX_TARGET_SEQ_LENGTH'])
 MAX_VOCAB_SIZE = int(os.environ['MAX_VOCAB_SIZE'])
 DATA_SET_NAME = 'cornell'
-DATA_PATH = 'data/cornell-dialogs/movie_lines_cleaned_10k.txt'
+DATA_PATH = 'data/cornell-dialogs/movie_lines_cleaned_100k.txt'
 
 GLOVE_MODEL = "very_large_data/glove.6B." + str(GLOVE_EMBEDDING_SIZE) + "d.txt"
 WHITELIST = 'abcdefghijklmnopqrstuvwxyz1234567890?.,'
