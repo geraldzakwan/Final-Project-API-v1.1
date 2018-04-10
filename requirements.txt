@@ -14,11 +14,9 @@ SQLAlchemy==1.2.2
 urllib3==1.22
 Werkzeug==0.14.1
 PyJWT==1.5.3
-keras
 numpy
 nltk
 scikit-learn
 h5py
-tensorflow
 matplotlib==2.0.0
 pandas==0.18.1

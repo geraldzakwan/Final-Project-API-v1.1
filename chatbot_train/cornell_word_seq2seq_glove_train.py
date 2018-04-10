@@ -20,7 +20,7 @@ load_dotenv(find_dotenv(), override=True)
 
 np.random.seed(42)
 
-BATCH_SIZE = int(os.environ['SMALL_BATCH_SIZE'])
+BATCH_SIZE = int(os.environ['BATCH_SIZE'])
 NUM_EPOCHS = int(sys.argv[3])
 PATIENCE = (int(os.environ['PATIENCE']) / 100) * NUM_EPOCHS
 GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
@@ -70,6 +70,14 @@ def download_glove():
 
         if not os.path.exists(glove_zip):
             print('glove file does not exist, downloading from internet')
+
+            #create the object, assign it to a variable
+            proxy = urllib.request.ProxyHandler({'http': 'http://geraldzakwan:68730098@cache.itb.ac.id:8080'})
+            # construct a new opener using your proxy settings
+            opener = urllib.request.build_opener(proxy)
+            # install the openen on the module-level
+            urllib.request.install_opener(opener)
+
             urllib.request.urlretrieve(url='http://nlp.stanford.edu/data/glove.6B.zip', filename=glove_zip,
                                        reporthook=reporthook)
 

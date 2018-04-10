@@ -19,8 +19,7 @@ load_dotenv(find_dotenv(), override=True)
 
 np.random.seed(42)
 
-# BATCH_SIZE = int(os.environ['BATCH_SIZE'])
-BATCH_SIZE = 64
+BATCH_SIZE = int(os.environ['SMALL_BATCH_SIZE'])
 NUM_EPOCHS = int(sys.argv[3])
 PATIENCE = (int(os.environ['PATIENCE']) / 100) * NUM_EPOCHS
 GLOVE_EMBEDDING_SIZE = int(os.environ['GLOVE_EMBEDDING_SIZE'])
