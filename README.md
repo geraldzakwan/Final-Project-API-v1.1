@@ -6,6 +6,8 @@ The chat bot is built based on seq2seq models, and can infer based on either cha
 
 The seq2seq model is implemented using LSTM encoder-decoder on Keras. 
 
+Published Paper: https://ieeexplore.ieee.org/document/8541285
+
 # Notes
 
 So far the GloVe word encoding version of the chatbot seems to give the best performance.
